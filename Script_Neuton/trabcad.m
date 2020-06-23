@@ -95,7 +95,9 @@ xlabel('t (seg)')
 ylabel('Amplitude')
 title('Quantizador')
 
+-----------------------------------------------------------------------
 Eliminando componentes nulas iniciais
+-----------------------------------------------------------------------
 
 for k = 1: length(y)% Acha o k que inicia a voz
     if sign(20*2/2^(Bits_Amostra) - abs(y(k)) ) < 0
@@ -120,9 +122,10 @@ plot(t,y(k: end ));
 title('Sinal sem componentes nulas')
 
 
-
-
+-----------------------------------------------------------------------
 Espectro de amplitudes do sinal
+-----------------------------------------------------------------------
+
 Lfft = 2^ceil(log2(length(y)));% melhora o algoritmo
 Y=fft(y,Lfft);
 
@@ -136,7 +139,10 @@ xlabel('f (Hz)')
 ylabel('Amplitude')
 title('Espectro do Sinal')
 
+-----------------------------------------------------------------------
 Passando o sinal por um filtro passa-baixas
+-----------------------------------------------------------------------
+
 fc=500; %freq. de corte
 Wn=fc/(TxAmost/2); %normalizando a freq de corte   
 
