@@ -1,16 +1,20 @@
-% Q1 ----------------------------
+% Q1 --------------------------------------------------------------------------------------------------------------------------------------------
 
 % inputs: 1 signal: (sample rate, bits per sample) = (4000, 8), (8000, 8), (4000, 16) e (8000, 16), time = 5 (s)
 
-Fs = ;
+Fs = 8000; % Sampling frequency
 
-n = ;
+n = 16; % bit encoding
 
-Chs = 1;
+Chs = 1; % input channels
 
-ID = 0; % check in audiodevinfo
+% IDin = -1; % always change to the current system input 
 
-recobj = audiorecorder(Fs, n, Chs, ID); % create recording object
+IDout = -1; % always change to the current system output
+
+recobj = audiorecorder(Fs, n, Chs); % create recording object
+
+pause(1);
 
 disp('Start speaking.');
 
@@ -18,36 +22,53 @@ recordblocking(recobj, 5); % record for 5s
 
 disp('End of Recording.');
 
+pause(1);
+
 y = getaudiodata(recobj); % y is a double array (values from -1 to 1) with 'Chs' columns
 
+% player = audioplayer(y, Fs, n, IDout); play(player) % Play audio
 
-% Q2 ----------------------------
+
+% Q2 --------------------------------------------------------------------------------------------------------------------------------------------
 
 % Nao eh feita no matlab
 
-% Q3 ----------------------------
+% Q3 --------------------------------------------------------------------------------------------------------------------------------------------
 
 % inputs: 1 signal: (sample rate, bits per sample) = (8000, 16) and LPF with cutoff frequencies: 3500, 2000, 1000, 500 (Hz)
 
-filterspecs = fdesign.lowpass('N,Fc,Ap,Ast', 50, 50, 1, 60, 1000);  % LPF specs, see which are applicable
+filterspecs = fdesign.lowpass('N,Fc', 50, 500, Fs);  % LPF specs, see which are applicable
 
-disp(designmethods(filterspecs))  % To verify that this specification is appropriate for the type of design method you want to use
+% disp(designmethods(filterspecs))  % To verify which design method is possible given the specs
 
-filterobj = design(filterspecs,'equiripple');
+filterobj = design(filterspecs,'window');
 
-yF = filter(filterobj, y);
+yF = filter(filterobj, y); % filtering the audio
 
 
-% Q4 ----------------------------
+% Q4 --------------------------------------------------------------------------------------------------------------------------------------------
 
 % inputs: 1 signal: (sample rate, bits per sample) = (8000, 16) and histogram spec
 
 % histogram spec: histogram for the signal samples, 1st sample: instant of voice recording (dismiss the silent samples)
 
 
-histogram(y); % specify other things
+for k = 1:1:length(y)
 
-% Q5 ----------------------------
+	if abs(y(k)) > 0.01 % almost random choose
+
+		break;
+
+	else continue;
+
+	end
+
+end
+
+hst = histogram(y(k:end), 2^(n/2 - 1),'Normalization','probability');
+
+
+% Q5 --------------------------------------------------------------------------------------------------------------------------------------------
 
 % inputs: 1 signal: (sample rate, bits per sample) = (8000, 24)  and quantization: 5 bits per sample
 
@@ -71,18 +92,18 @@ function [q_out, Delta, SQNR] = uniquan(sig_in, L)
 
 	qindex = min(qindex, L);
 
-	q_out = q_level(qindex);
+	q_out = q_level(qindex)';
 
 	SQNR = 20*log10(norm(sig_in)/norm(sig_in - q_out));
 
 end
 
-L = 2^n; n = 5; % use the exact number
+L = 32; % n here is different from the n above (L = 2^n)
 
 [yQ, Delta, SNR] = uniquan(y, L);
 
 
-% Q6 ----------------------------
+% Q6 --------------------------------------------------------------------------------------------------------------------------------------------
 
 % inputs: 2 signals: (sample rate, bits per sample) = (8000, 24) and (20000, 24)
 
@@ -91,6 +112,8 @@ L = 2^n; n = 5; % use the exact number
 % implementation of delta modulation, given a step size Delta (important!!!!)
 
 function s_DMout = deltamod(sig_in, Delta, td, ts)
+
+	s_DMout =  NaN*zeros(1, length(sig_in));
 
 	if (rem(ts/td, 1) == 0) 
 
@@ -112,13 +135,13 @@ function s_DMout = deltamod(sig_in, Delta, td, ts)
 
 		end
 	
-	s_DMout = kron(s_DMout, p_zoh);
+	s_DMout = kron(s_DMout, p_zoh)';
 
 	else 
 
 		warning('Error! ts/td is not an integer!');
 
-		s_DMout = [];
+		s_DMout = []';
 
 	end
 
@@ -126,7 +149,9 @@ end
 
 ts = 1/Fs;
 
-td = 1/lenght(y);
+td = 1/length(y);
+
+Deltadm = Delta;
 
 yDM = deltamod(y, Delta, td, ts);
 
