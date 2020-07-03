@@ -2,7 +2,6 @@
 
 
 
-[Link do relatório](https://www.overleaf.com/2461239764pqwjtrrxcgzs) 
 
 [Link da planilha de pesquisa](https://docs.google.com/spreadsheets/d/1m7Y5L-WDl115QQO8637Jzopxc3Oz0G6Xt88zOyYNHz4/edit)
 
